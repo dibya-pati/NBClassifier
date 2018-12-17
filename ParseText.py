@@ -11,6 +11,7 @@ class ParseText:
         self.numsamples = 0
         self.fpos = None
         self.labelnames = None
+        self.labelmapper = None
 
     '''return mapping from feature(word) to index'''
     def featureidx(self):
@@ -49,6 +50,7 @@ class ParseText:
         self.samplename = np.asarray(map(lambda x: x[namepos], tokens))
         labels = np.asarray(map(lambda x: x[labelpos], tokens))
         self.labelnames, self.labels = np.unique(labels, return_inverse=True)
+        self.labelmapper = dict(zip(self.labelnames, range(self.labelnames.shape[0])))
         self.numsamples = self.labels.shape[0]
 
         # create a set of all words in the file
@@ -119,6 +121,7 @@ class ParseText:
         row = tokendarray[:, 2].astype(int)
         col = tokendarray[:, 0].astype(int)
         labels = np.asarray(map(lambda x: x[labelpos], tokens))
+        labels = map(lambda x:self.labelmapper[x], labels)
         featurevector = bsr_matrix((data, (row, col)), shape=(len(labels), self.features.shape[0]))
 
         return featurevector, labels

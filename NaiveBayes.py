@@ -55,11 +55,6 @@ class NaiveBayes:
         elif type(X) == list:
             X = np.asarray(X)
 
-
-        # print(self.priors)
-        # print(self.likelihood)
-        # print (self.labels)
-
         def predictsample(row):
             return self.labels[np.argmax(np.dot(self.likelihood, row) + self.priors, axis=0)]
 

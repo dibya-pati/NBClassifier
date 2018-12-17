@@ -35,8 +35,8 @@ if __name__ == '__main__':
 
     X, ya = parser.vectorize(r'./test', delimiter=' ')
     yp = clf.predict(X)
-    print(ya, yp)
-    # from sklearn.metrics import confusion_matrix, accuracy_score
-    # print(confusion_matrix(ya, yp), accuracy_score(ya, yp))
+    # print(ya, yp)
+    from sklearn.metrics import confusion_matrix, accuracy_score
+    print(confusion_matrix(ya, yp), accuracy_score(ya, yp))
 
 
