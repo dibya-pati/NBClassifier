@@ -42,8 +42,7 @@ class NaiveBayes:
                                                  for cl in self.labels]), axis=1)
 
         self.likelihood = np.apply_along_axis(attlikelihood, 1, labelwordsum)
-        # self.likelihood = np.squeeze(np.asarray([np.sum(self.likelihood[np.where(y == cl), :], axis=1)
-        #                                          for cl in self.labels]), axis=1)
+
         return self.likelihood, self.priors
 
     def predict(self, X):
