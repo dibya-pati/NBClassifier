@@ -29,7 +29,9 @@
 ## NaiveBayes ##  
 	Class for running Naive Bayes on input vectors  
   
-	Methods:
+	Methods:  
+	__init__(self, smoothing=1.0):  
+		set the smoothing/alpha param for smoothing the likelihood, default laplacian smoothing with smoothing = 1.0  
   
 	NaiveBayes.NaiveBayes.fit(self, X, y)  
 		return fitted likelihood and prior probabilities.  
