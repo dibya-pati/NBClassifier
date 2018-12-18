@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.sparse import bsr_matrix
-import operator
 
 class ParseText:
     def __init__(self):
@@ -32,6 +31,13 @@ class ParseText:
         assert self.labels is not None, "Use fit to set the labels first"
         return self.labels
 
+    # '''flatten a nested list, faster than reduce ops'''
+    # def _flatten(self, items, seqtypes=(list, tuple)):
+    #     for i, x in enumerate(items):
+    #         while i < len(items) and isinstance(items[i], seqtypes):
+    #             items[i:i + 1] = items[i]
+    #     return items
+
     '''Read csv of the format 
     <samplename> <label> <attribute> <frequency> ...
     '''
@@ -43,20 +49,22 @@ class ParseText:
         # read from file, use an unused separator to get it as a whole line
         alltext = np.genfromtxt(filename, dtype='str', delimiter='\UFFFD')
         
-        # split to tokens
-        tokens = np.char.split(alltext, delimiter)
+        # split to lines
+        lines = np.char.split(alltext, delimiter)
         
         # extract the names of the samples, labels, number of samples used
-        self.samplename = np.asarray(map(lambda x: x[namepos], tokens))
-        labels = np.asarray(map(lambda x: x[labelpos], tokens))
+        self.samplename = np.asarray([t[namepos] for t in lines])
+        labels = np.asarray([t[labelpos] for t in lines])
         self.labelnames, self.labels = np.unique(labels, return_inverse=True)
         self.labelmapper = dict(zip(self.labelnames, range(self.labelnames.shape[0])))
         self.numsamples = self.labels.shape[0]
 
         # create a set of all words in the file
-        map(lambda line:
-            map(lambda valid: featureset.add(valid.lower()), filter(lambda word: word.isalpha(), line[2::2]))
-            , tokens)
+        for line in lines:
+            words = line[2::2]
+            for word in words:
+                if word.isalpha():
+                    featureset.add(word.lower())
 
         # convert to np array
         self.features = np.asarray(sorted(list(featureset)))
@@ -65,19 +73,14 @@ class ParseText:
         self.fpos = {k: v for v, k in enumerate(self.features)}
 
         # create a list of lists contains (words, freq, line num)
-        tokendarray = map(lambda linezip:
-                          filter(lambda wzip: wzip[0].lower() in self.fpos,
-                                 (zip(linezip[0][2::2],
-                                      linezip[0][3::2], [linezip[1]]*((len(linezip[0]) - 2) / 2)))),
-                          zip(tokens, range(self.numsamples)))
+        tokendarray = []
+        for row, token in enumerate(lines):
+            words = token[2::2]
+            freq = token[3::2]
+            for w, f in zip(words, freq):
+                if w.lower() in self.fpos:
+                    tokendarray.append((self.fpos[w], f, row))
 
-        # flatten the list of lists
-        tokendarray = reduce(operator.add, tokendarray)
-
-        # remap the feature name to index
-        tokendarray = map(lambda x: (self.fpos[x[0]], x[1], x[2]), tokendarray)
-
-        # convert to nd array
         tokendarray = np.asarray(tokendarray)
 
         data = tokendarray[:, 1].astype(int)
@@ -98,21 +101,17 @@ class ParseText:
         # read from file, use an unused separator to get it as a whole line
         alltext = np.genfromtxt(filename, dtype='str', delimiter='\UFFFD')
 
-        # split to tokens
-        tokens = np.char.split(alltext, delimiter)
+        # split to lines
+        lines = np.char.split(alltext, delimiter)
 
-        # create a list of lists contains (words, freq, line num)
-        tokendarray = map(lambda linezip:
-                          filter(lambda wzip: wzip[0].lower() in self.fpos,
-                                 (zip(linezip[0][2::2],
-                                      linezip[0][3::2], [linezip[1]] * ((len(linezip[0]) - 2) / 2)))),
-                          zip(tokens, range(self.numsamples)))
-
-        # flatten the list of lists
-        tokendarray = reduce(operator.add, tokendarray)
-
-        # remap the feature name to index
-        tokendarray = map(lambda x: (self.fpos[x[0]], x[1], x[2]), tokendarray)
+        # create tuples of word_index, freq, row
+        tokendarray = []
+        for row, token in enumerate(lines):
+            words = token[2::2]
+            freq = token[3::2]
+            for w, f in zip(words, freq):
+                if w.lower() in self.fpos:
+                    tokendarray.append((self.fpos[w], f, row))
 
         # convert to nd array
         tokendarray = np.asarray(tokendarray)
@@ -120,8 +119,7 @@ class ParseText:
         data = tokendarray[:, 1].astype(int)
         row = tokendarray[:, 2].astype(int)
         col = tokendarray[:, 0].astype(int)
-        labels = np.asarray(map(lambda x: x[labelpos], tokens))
-        labels = map(lambda x:self.labelmapper[x], labels)
+        labels = np.asarray([self.labelmapper[t[labelpos]] for t in lines])
         featurevector = bsr_matrix((data, (row, col)), shape=(len(labels), self.features.shape[0]))
 
         return featurevector, labels

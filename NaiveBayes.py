@@ -1,5 +1,6 @@
 import numpy as np
-import scipy
+from scipy.sparse import bsr_matrix
+
 
 class NaiveBayes:
     def __init__(self, smoothing=1.0):
@@ -13,9 +14,9 @@ class NaiveBayes:
 
     def fit(self, X, y):
         assert type(y) in[np.ndarray, list], 'expecting array or numpy array'
-        assert type(X) in [np.ndarray, list, scipy.sparse.bsr.bsr_matrix], 'expecting array or numpy array'
+        assert type(X) in [np.ndarray, list, bsr_matrix], 'expecting array or numpy array'
 
-        if type(X) == scipy.sparse.bsr.bsr_matrix:
+        if type(X) == bsr_matrix:
             y = np.asarray(y)
             X = X.toarray()
 
@@ -39,16 +40,16 @@ class NaiveBayes:
             return np.log((X + self.smoothing)/(updcount + attsum))
 
         labelwordsum = np.squeeze(np.asarray([np.sum(X[np.where(y == cl), :], axis=1)
-                                                 for cl in self.labels]), axis=1)
+                                              for cl in self.labels]), axis=1)
 
         self.likelihood = np.apply_along_axis(attlikelihood, 1, labelwordsum)
 
         return self.likelihood, self.priors
 
     def predict(self, X):
-        assert type(X) in [np.ndarray, list, scipy.sparse.bsr.bsr_matrix], 'expecting array or numpy array'
+        assert type(X) in [np.ndarray, list, bsr_matrix], 'expecting array or numpy array'
 
-        if type(X) == scipy.sparse.bsr.bsr_matrix:
+        if type(X) == bsr_matrix:
             X = X.toarray()
 
         elif type(X) == list:
