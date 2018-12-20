@@ -3,7 +3,7 @@ from scipy.sparse import bsr_matrix
 
 
 class NaiveBayes:
-    def __init__(self, smoothing=1.0):
+    def __init__(self, smoothing=1.0, tfidf=False):
         self.numclasses = 0
         self.priors = None
         self.smoothing = smoothing
@@ -11,6 +11,8 @@ class NaiveBayes:
         self.likelihood = None
         self.numattributes = 0.0
         self.labels = None
+        self.tfidf = tfidf
+
 
     def fit(self, X, y):
         assert type(y) in[np.ndarray, list], 'expecting array or numpy array'
@@ -34,6 +36,14 @@ class NaiveBayes:
 
         self.priors = np.log(np.asarray([np.where(y == cl)[0].shape[0]/float(self.numsamples)
                                          for cl in self.labels]))
+
+        # compute tfidf weights instead of the count
+        if self.tfidf:
+            alldoc = X.shape[0]
+            # freqperdoc = np.sum(np.where(X > 0, 1, 0), axis=0)
+            idf = np.log((alldoc + 1.0)/(np.sum(np.where(X > 0, 1, 0), axis=0) + 1.0)) + 1.0
+            X = X.astype(float)/X.sum(axis=1)[:, None]
+            X = X*idf
 
         def attlikelihood(X):
             attsum = np.sum(X)

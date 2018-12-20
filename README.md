@@ -18,7 +18,7 @@
 	ParseText.ParseText.getlabels(self)  
 		return the labels of the fit data  
 	
-	ParseText.ParseText.fit(self, filename, delimiter=','  
+	ParseText.ParseText.fit_transform(self, filename, delimiter=',')  
 		Read csv of the format <samplename> <label> <attribute> <frequency> ...)  
 		and return the feature vectors and the labels
   
@@ -30,8 +30,9 @@
 	Class for running Naive Bayes on input vectors  
   
 	Methods:  
-	__init__(self, smoothing=1.0):  
+	__init__(self, smoothing=1.0, tfidf=False):  
 		set the smoothing/alpha param for smoothing the likelihood, default laplacian smoothing with smoothing = 1.0  
+		Set tfidf to True to use tfidf weights instead of count, idf = tf*(log((n+1)/(wordindocs+1))+1)
   
 	NaiveBayes.NaiveBayes.fit(self, X, y)  
 		return fitted likelihood and prior probabilities.  

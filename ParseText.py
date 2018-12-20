@@ -41,7 +41,7 @@ class ParseText:
     '''Read csv of the format 
     <samplename> <label> <attribute> <frequency> ...
     '''
-    def fit(self, filename, delimiter=','):
+    def fit_transform(self, filename, delimiter=','):
         featureset = set()
         namepos = 0
         labelpos = 1
